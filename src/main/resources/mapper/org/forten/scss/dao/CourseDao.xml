@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.towins.scss.dao.CourseDao">
+    <resultMap type="org.towins.scss.dto.vo.CourseForTeacher" id="courseMapForTeacher">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="teacher" column="teacher"/>
+        <result property="intro" column="intro"/>
+        <result property="serviceTeacher" column="service_teacher"/>
+        <result property="serviceTeacherTel" column="service_teacher_tel"/>
+        <result property="beginTeachTime" column="begin_teach_time"/>
+        <result property="endTeachTime" column="end_teach_time"/>
+        <result property="beginSelectTime" column="begin_select_time"/>
+        <result property="endSelectTime" column="end_select_time"/>
+        <result property="classroom" column="classroom"/>
+        <result property="maxAmount" column="max_amount"/>
+        <result property="currentAmount" column="current_amount"/>
+        <result property="credit" column="credit"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <resultMap type="org.towins.scss.dto.vo.NameListVo" id="nameListMap">
+        <result property="name" column="cadreName"/>
+        <result property="empCard" column="cadreEmpCard"/>
+        <result property="tel" column="cadreTel"/>
+    </resultMap>
+
+    <resultMap type="org.towins.scss.dto.vo.ScInfoPie" id="scInfoPieMap">
+        <result property="name" column="optType"/>
+        <result property="value" column="scCount"/>
+    </resultMap>
+
+    <resultMap type="org.towins.scss.dto.vo.AttendanceVo" id="attendanceMap">
+        <result property="courseId" column="courseId"/>
+        <result property="cadreId" column="cadreId"/>
+        <result property="cadreName" column="cadreName"/>
+        <result property="empCard" column="empCard"/>
+        <result property="tel" column="tel"/>
+        <result property="attendance" column="attendance"/>
+    </resultMap>
+
+    <select id="queryCountForTeacher" resultType="long">
+        SELECT
+        count(id)
+        FROM course
+        <where>
+            <if test="name != null and name != ''">
+                <bind name="nameLike" value="'%'+name+'%'"/>
+                AND name LIKE #{nameLike}
+            </if>
+            <if test="status != null and status != ''">
+                AND status=#{status}
+            </if>
+            <if test="begin!=null and end!=null">
+                AND begin_teach_time BETWEEN #{begin} AND #{end}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryForTeacher" resultMap="courseMapForTeacher">
+        SELECT
+        *
+        FROM course
+        <where>
+            <if test="name != null and name != ''">
+                <bind name="nameLike" value="'%'+name+'%'"/>
+                AND name LIKE #{nameLike}
+            </if>
+            <if test="status != null and status != ''">
+                AND status=#{status}
+            </if>
+            <if test="begin!=null and end!=null">
+                AND begin_teach_time BETWEEN #{begin} AND #{end}
+            </if>
+        </where>
+        ORDER BY id DESC
+        limit #{first},#{rows}
+    </select>
+
+    <select id="queryForExport" resultMap="courseMapForTeacher">
+        SELECT
+        *
+        FROM course
+        <where>
+            <if test="name != null and name != ''">
+                <bind name="nameLike" value="'%'+name+'%'"/>
+                AND name LIKE #{nameLike}
+            </if>
+            <if test="status != null and status != ''">
+                AND status=#{status}
+            </if>
+            <if test="begin!=null and end!=null">
+                AND begin_teach_time BETWEEN #{begin} AND #{end}
+            </if>
+        </where>
+        ORDER BY id
+    </select>
+
+    <select id="queryFinished" resultMap="courseMapForTeacher">
+        SELECT *
+        FROM course
+        WHERE end_teach_time BETWEEN
+          (SELECT value FROM sys_params WHERE id='COUNT_BEGIN_DATE') AND current_timestamp
+        ORDER BY end_teach_time DESC
+    </select>
+
+    <select id="queryNameList" resultMap="nameListMap" parameterType="long">
+        <![CDATA[
+          SELECT c.emp_card cadreEmpCard,c.name cadreName,c.tel cadreTel
+          FROM
+              cadre c JOIN sc_info si
+              ON (c.id=si.cadre_id)
+              JOIN course cs
+              ON (cs.id=si.course_id)
+          WHERE
+              cs.id=#{courseId}
+              AND si.opt_type='XK'
+        ]]>
+    </select>
+
+    <select id="queryForAttendance" resultMap="attendanceMap" parameterType="long">
+        <![CDATA[
+          SELECT si.cadre_id cadreId,si.course_id courseId,ca.name cadreName,
+            ca.emp_card empCard,ca.tel tel,si.attendance attendance
+          FROM course c JOIN sc_info si ON (c.id=si.course_id)
+            JOIN cadre ca ON (ca.id=si.cadre_id)
+          WHERE si.course_id=#{courseId} AND si.opt_type="XK"
+        ]]>
+    </select>
+
+    <select id="findForPie" resultMap="scInfoPieMap" parameterType="long">
+        <![CDATA[
+          SELECT count(cadre_id) scCount,
+            CASE
+                WHEN opt_type='XK' THEN '选中'
+                WHEN opt_type='TK' THEN '退课'
+                ELSE '排队'
+            END
+            optType
+          FROM sc_info
+          WHERE course_id=#{courseId}
+          GROUP BY opt_type;
+        ]]>
+    </select>
+
+    <update id="changeAttendance" parameterType="org.towins.scss.dto.vo.AttendanceVo">
+        <![CDATA[
+          UPDATE sc_info SET attendance=#{attendance}
+          WHERE course_id=#{courseId} AND cadre_id=#{cadreId}
+        ]]>
+    </update>
+</mapper>

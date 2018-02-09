@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.towins.scss.dao.CadreDao">
+    <resultMap type="org.towins.scss.dto.vo.CadreVo" id="cadreMap">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="tel" column="tel"/>
+        <result property="email" column="email"/>
+        <result property="gender" column="gender"/>
+        <result property="empCard" column="emp_card"/>
+    </resultMap>
+
+    <select id="queryCount" resultType="long">
+        SELECT
+        count(id)
+        FROM cadre
+        <where>
+            <if test="name != null and name != ''">
+                <bind name="nameLike" value="'%'+name+'%'"/>
+                AND name LIKE #{nameLike}
+            </if>
+            <if test="empCard != null and empCard != ''">
+                <bind name="ecLike" value="'%'+empCard+'%'"/>
+                AND emp_card LIKE #{ecLike}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryBy" resultMap="cadreMap">
+        SELECT
+        *
+        FROM cadre
+        <where>
+            <if test="name != null and name != ''">
+                <bind name="nameLike" value="'%'+name+'%'"/>
+                AND name LIKE #{nameLike}
+            </if>
+            <if test="empCard != null and empCard != ''">
+                <bind name="ecLike" value="'%'+empCard+'%'"/>
+                AND emp_card LIKE #{ecLike}
+            </if>
+        </where>
+        ORDER BY id DESC
+        limit #{first},#{rows}
+    </select>
+
+    <select id="queryForExport" resultMap="cadreMap">
+        SELECT
+        *
+        FROM cadre
+        <where>
+            <if test="name != null and name != ''">
+                <bind name="nameLike" value="'%'+name+'%'"/>
+                AND name LIKE #{nameLike}
+            </if>
+            <if test="empCard != null and empCard != ''">
+                <bind name="ecLike" value="'%'+empCard+'%'"/>
+                AND emp_card LIKE #{ecLike}
+            </if>
+        </where>
+        ORDER BY id
+    </select>
+</mapper>

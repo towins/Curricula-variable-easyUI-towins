@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.towins.scss.dao.SelectCourseDao">
+    <resultMap type="org.towins.scss.dto.vo.CourseVoForSelect" id="courseMapForSelect">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="teacher" column="teacher"/>
+        <result property="serviceTeacher" column="service_teacher"/>
+        <result property="serviceTeacherTel" column="service_teacher_tel"/>
+        <result property="beginTeachTime" column="begin_teach_time"/>
+        <result property="classroom" column="classroom"/>
+        <result property="maxAmount" column="max_amount"/>
+        <result property="currentAmount" column="current_amount"/>
+        <result property="credit" column="credit"/>
+    </resultMap>
+
+    <resultMap type="org.towins.scss.dto.vo.CourseVoForSelect" id="courseMapForSelect2">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="teacher" column="teacher"/>
+        <result property="serviceTeacher" column="service_teacher"/>
+        <result property="serviceTeacherTel" column="service_teacher_tel"/>
+        <result property="beginTeachTime" column="begin_teach_time"/>
+        <result property="classroom" column="classroom"/>
+        <result property="maxAmount" column="max_amount"/>
+        <result property="currentAmount" column="current_amount"/>
+        <result property="credit" column="credit"/>
+        <result property="optType" column="si_opt_type"/>
+    </resultMap>
+
+    <!-- 可进行选课操作的课程 -->
+    <select id="queryForSelect" resultMap="courseMapForSelect">
+        SELECT
+        id,name,teacher,service_teacher,service_teacher_tel,
+        begin_teach_time,classroom,max_amount,current_amount,credit
+        FROM course
+        WHERE current_timestamp BETWEEN begin_select_time AND end_select_time
+        AND id NOT IN
+        (
+          SELECT course_id
+          FROM sc_info
+          WHERE (opt_type='XK' OR opt_type='PD') AND cadre_id=#{cadreId}
+        )
+    </select>
+    <!-- 可进行退课操作的课程 -->
+    <select id="queryForCancel" resultMap="courseMapForSelect2">
+        <![CDATA[
+            SELECT
+              c.id,c.name,c.teacher,c.service_teacher,c.service_teacher_tel,
+              c.begin_teach_time,c.classroom,c.max_amount,c.current_amount,c.credit,si.opt_type si_opt_type
+            FROM course c JOIN sc_info si ON (c.id=si.course_id) JOIN cadre ca ON (ca.id=si.cadre_id)
+            WHERE current_timestamp<date_add(c.end_select_time, interval -1 day)
+            AND si.cadre_id=#{cadreId}
+            AND c.id IN (
+              SELECT course_id
+              FROM sc_info
+              WHERE (opt_type='XK' OR opt_type='PD') AND cadre_id=#{cadreId}
+        )
+        ]]>
+    </select>
+    <!-- 干部已经选中或正在排队的未上课的所有课程 -->
+    <select id="querySelectedCourse" resultMap="courseMapForSelect2">
+        <![CDATA[
+          SELECT
+            c.id,c.name,c.teacher,c.service_teacher,c.service_teacher_tel,
+            c.begin_teach_time,c.classroom,c.max_amount,c.current_amount,c.credit,si.opt_type si_opt_type
+          FROM course c JOIN sc_info si ON (c.id=si.course_id) JOIN cadre ca ON (ca.id=si.cadre_id)
+          WHERE current_timestamp < begin_teach_time
+          AND si.cadre_id=#{cadreId}
+          AND c.id IN (
+            SELECT course_id
+            FROM sc_info
+            WHERE (opt_type='XK' OR opt_type='PD') AND cadre_id=#{cadreId}
+          );
+        ]]>
+    </select>
+
+    <select id="queryPD2XK" resultType="Long" parameterType="long" >
+        <![CDATA[
+          SELECT cadre_id
+          FROM sc_info
+          WHERE course_id=#{courseId} AND opt_type='PD'
+          ORDER BY opt_time
+          limit 1
+        ]]>
+    </select>
+
+    <insert id="selectCourse" parameterType="org.towins.scss.dto.vo.SelectInfoVoForWrite">
+        <![CDATA[
+          replace into sc_info
+          (cadre_id,course_id,opt_type,opt_time)
+          values
+          (#{cadreId},#{courseId},#{optType},CURRENT_TIMESTAMP);
+        ]]>
+    </insert>
+
+    <update id="cancelCourse" parameterType="long">
+        <![CDATA[
+          UPDATE sc_info
+          SET opt_type='TK',opt_time=CURRENT_TIMESTAMP
+          WHERE cadre_id=#{cadreId} AND course_id=#{courseId}
+        ]]>
+    </update>
+
+    <update id="addOneCurrentAmount" parameterType="long">
+        <![CDATA[
+          UPDATE course
+          SET current_amount = current_amount + 1
+          WHERE id=#{courseId}
+        ]]>
+    </update>
+
+    <update id="subOneCurrentAmount" parameterType="long">
+        <![CDATA[
+          UPDATE course
+          SET current_amount = current_amount - 1
+          WHERE id=#{courseId}
+        ]]>
+    </update>
+
+    <select id="queryCreditForCount" resultType="Integer" parameterType="org.towins.scss.dto.qo.CreditQoForCount">
+        <![CDATA[
+            SELECT sum(cs.credit)
+            FROM
+                cadre c JOIN sc_info si
+                ON (c.id=si.cadre_id)
+                JOIN course cs
+                ON (cs.id=si.course_id)
+            WHERE
+                c.id=#{cadreId}
+                AND current_timestamp>cs.end_teach_time
+                AND cs.begin_teach_time BETWEEN #{begin} AND #{end}
+                AND si.attendance='CQ'
+                AND si.opt_type='XK'
+        ]]>
+    </select>
+
+    <select id="queryCreditForNotBegin" resultType="Integer" parameterType="long">
+        <![CDATA[
+            SELECT sum(cs.credit)
+            FROM
+                cadre c JOIN sc_info si
+                ON (c.id=si.cadre_id)
+                JOIN course cs
+                ON (cs.id=si.course_id)
+            WHERE
+                c.id=#{cadreId}
+                AND current_timestamp<cs.end_teach_time
+                AND si.attendance='CQ'
+                AND (si.opt_type='XK' OR si.opt_type='PD');
+        ]]>
+    </select>
+
+    <select id="findWillTeached" resultMap="courseMapForSelect">
+        <![CDATA[
+            SELECT id,name,begin_teach_time,classroom
+            FROM course
+            WHERE begin_teach_time
+            BETWEEN date_add(date_add(current_date, interval 2 day),interval 8 hour)
+            AND date_add(date_add(current_date, interval 2 day),interval 19 hour)
+        ]]>
+    </select>
+    <select id="findEmails" resultType="String" parameterType="long">
+        <![CDATA[
+            SELECT c.email
+            FROM cadre c JOIN sc_info si
+            ON (c.id=si.cadre_id)
+            WHERE si.course_id=#{courseId} AND si.opt_type='XK'
+        ]]>
+    </select>
+
+
+</mapper>

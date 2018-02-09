@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>课程维护</title>
+    <link rel="stylesheet" href="css/bootstrap.css"/>
+    <link rel="stylesheet" href="css/jquery-ui.css"/>
+    <link rel="stylesheet" href="css/easyui.css"/>
+    <link rel="stylesheet" href="css/color.css"/>
+    <link rel="stylesheet" href="css/icon.css"/>
+</head>
+<body>
+<div class="container">
+    <div id="tool-bar" style="padding:3px">
+        <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="openSaveDialog()">添加新课程</a>
+        <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="openUpdateDialog()">编辑</a>
+        <form id="search-form" action="/cadre/export" method="POST">
+            <span>名称</span>
+            <input id="name" name="name" style="line-height:20px;border:1px solid #ccc">
+            <span>状态</span>
+            <input id="empCard" name="empCard" style="line-height:20px;border:1px solid #ccc">
+            <a href="#" class="easyui-linkbutton" plain="true" onclick="doSearch()">查询</a>
+            <a href="#" class="easyui-linkbutton" plain="true" onclick="doExport()">导出数据</a>
+        </form>
+    </div>
+    <table id="cadre-list"></table>
+    <form id="upload-form" method="POST" enctype="multipart/form-data">
+        <input type="file" id="file" name="file" />
+        <button type="button" onclick="upload()">导入</button>
+    </form>
+    <progress id="progressBar" value="0" max="100" ></progress><span id="target"></span>
+</div>
+<!-- 保存对话框开始 -->
+<div id="save-dialog" hidden>
+    <form id="save-form" method="POST">
+        <div>
+            <label>姓名：</label><input id="save-name"/>
+        </div>
+        <div>
+            <label>密码：</label><input id="save-password"/>
+        </div>
+        <div>
+            <label>性别：</label>
+            <input id="save-gender-m" type="radio" name="save-gender" value="男" checked/> 男
+            <input id="save-gender-f" type="radio" name="save-gender" value="女"/> 女
+        </div>
+        <div>
+            <label>工作证号：</label><input id="save-empCard"/>
+        </div>
+        <div>
+            <label>电话：</label><input id="save-tel"/>
+        </div>
+        <div>
+            <label>email：</label><input id="save-email" type="email"/>
+        </div>
+    </form>
+</div>
+<div id="save-buttons" hidden>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-ok" onclick="save()">保存</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-cancel" onclick="$('#save-dialog').dialog('close')">取消</a>
+</div>
+<!-- 保存对话框结束 -->
+
+<!-- 数据修改对话框开始 -->
+<div id="update-dialog" hidden>
+    <form id="update-form" method="POST">
+        <div>
+            <input id="update-id" type="hidden"/>
+            <label>姓名：</label><input id="update-name"/>
+        </div>
+        <div>
+            <label>性别：</label>
+            <input id="update-gender-m" type="radio" name="update-gender" value="男" checked/> 男
+            <input id="update-gender-f" type="radio" name="update-gender" value="女"/> 女
+        </div>
+        <div>
+            <label>工作证号：</label><input id="update-empCard"/>
+        </div>
+        <div>
+            <label>电话：</label><input id="update-tel"/>
+        </div>
+        <div>
+            <label>email：</label><input id="update-email" type="email"/>
+        </div>
+    </form>
+</div>
+<div id="update-buttons" hidden>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-ok" onclick="update()">修改</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-cancel" onclick="$('#update-dialog').dialog('close')">取消</a>
+</div>
+<!-- 数据修改对话框结束 -->
+
+<script src="js/jquery-3.2.1.js"></script>
+<script src="js/bootstrap.js"></script>
+<script src="js/jquery-ui.js"></script>
+<script src="js/jquery.easyui.min.js"></script>
+<script src="js/easyui-lang-zh_CN.js"></script>
+<script src="js/md5.js"></script>
+<script>
+    $('#cadre-list').datagrid({
+        title: "干部信息列表",
+        url: '/cadre/query',
+        method: "POST",
+        pagination: true,
+        pageList: [3, 5, 10],
+        toolbar: "#tool-bar",
+        columns: [[
+            {field: 'idStr', title: 'ID', checkbox: true, resizable: true},
+            {field: 'name', title: '名称', width: 150, resizable: true},
+            {field: 'empCard', title: '工作证号', width: 150, resizable: true},
+            {field: 'gender', title: '性别', width: 50, resizable: true},
+            {field: 'tel', title: '电话', width: 150, resizable: true},
+            {field: 'email', title: '电子邮箱', width: 200, resizable: true}
+        ]]
+    });
+
+    function doSearch() {
+        $('#cadre-list').datagrid('load', {
+            "name": $("#name").val(),
+            "empCard": $("#empCard").val()
+        });
+    }
+
+    function openSaveDialog() {
+        $('#save-dialog').dialog({
+            title: "添加干部信息",
+            width: 350,
+            height: 300,
+            closed: false,
+            cache: false,
+            modal: true,
+            buttons: "#save-buttons"
+        });
+        $("#save-dialog").dialog('open');
+    }
+
+    function save() {
+        let cadre = {
+            "name": $("#save-name").val(),
+            "password": hex_md5($("#save-password").val()),
+            "email": $("#save-email").val(),
+            "tel": $("#save-tel").val(),
+            "empCard": $("#save-empCard").val(),
+            "gender": $("input[name='save-gender']:checked").val()
+        };
+
+        $.ajax({
+            url: "/cadre",
+            type: "POST",
+            data: JSON.stringify(cadre),
+            dataType: "json",
+            contentType: "application/json"
+        }).then(function (message) {
+            alert(message.messageText);
+            $("#save-form").get(0).reset();
+            $("#cadre-list").datagrid('reload');
+            $("#save-dialog").dialog('close');
+        }, function (xhr) {
+            alert(xhr.responseText);
+        });
+    }
+
+    function openUpdateDialog() {
+        let cadre = $("#cadre-list").datagrid('getSelected');
+
+        console.log(JSON.stringify(cadre));
+
+        $("#update-id").val(cadre.idStr);
+        $("#update-name").val(cadre.name);
+        $("#update-tel").val(cadre.tel);
+        $("#update-email").val(cadre.email);
+        $("#update-empCard").val(cadre.empCard);
+        if(cadre.gender=="男"){
+            $("#update-gender-m").prop('checked',true);
+        }else{
+            $("#update-gender-f").prop('checked',true);
+        }
+
+        $('#update-dialog').dialog({
+            title: "修改干部信息",
+            width: 350,
+            height: 300,
+            closed: false,
+            cache: false,
+            modal: true,
+            buttons: "#update-buttons"
+        });
+        $("#update-dialog").dialog('open');
+    }
+
+    function update() {
+        let cadre = {
+            "id": $("#update-id").val(),
+            "name": $("#update-name").val(),
+            "email": $("#update-email").val(),
+            "tel": $("#update-tel").val(),
+            "empCard": $("#update-empCard").val(),
+            "gender": $("input[name='update-gender']:checked").val()
+        };
+
+        console.log(JSON.stringify(cadre));
+
+        $.ajax({
+            url: "/cadre",
+            type: "PUT",
+            data: JSON.stringify(cadre),
+            dataType: "json",
+            contentType: "application/json"
+        }).then(function (message) {
+            alert(message.messageText);
+            $("#cadre-list").datagrid('reload');
+            $("#update-dialog").dialog('close');
+        }, function (xhr) {
+            alert(xhr.responseText);
+        });
+    }
+
+    function doExport() {
+        $("#search-form").get(0).submit();
+    }
+
+    function upload() {
+        var fileObj = document.getElementById("file").files[0]; // 获取文件对象
+        var FileController = "/cadre/importData"; // 接收上传文件的后台URL
+        // FormData对象
+        var form = new FormData();
+        form.append("file", fileObj); // 文件对象
+        // XMLHttpRequest对象
+        var xhr = new XMLHttpRequest();
+
+        let message = null;
+
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200) {
+                    console.log(xhr.responseText);
+                    message = xhr.responseText;
+                } else {
+                    alert(xhr.status);
+                }
+            }
+        }
+
+        xhr.open("POST", FileController, true);
+        xhr.onload = function() {
+            let obj = JSON.parse(message);
+            if(obj.typeDes=='info'){
+                alert("上传完成!");
+            }else{
+                alert(obj.messageText);
+            }
+        };
+        xhr.upload.addEventListener("progress", progress, false);
+
+        xhr.send(form);
+    }
+    function progress(evt) {
+        var progressBar = document.getElementById("progressBar");
+        var target = document.getElementById("target");
+        if (evt.lengthComputable) {
+            progressBar.max = evt.total;
+            progressBar.value = evt.loaded;
+            target.innerHTML = Math.round(evt.loaded / evt.total * 100)
+                + "%";
+        }
+    }
+</script>
+</body>
+</html>
