@@ -1,12 +1,11 @@
 package org.towins.scss.entity;
 
-import org.towins.utils.system.CurrentTimeKeyBuilder;
+import org.forten.utils.system.CurrentTimeKeyBuilder;
 import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 @Entity

@@ -1,8 +1,8 @@
 package org.towins.scss.entity;
 
-import org.towins.utils.common.DateUtil;
-import org.towins.utils.common.NumberUtil;
-import org.towins.utils.common.StringUtil;
+import org.forten.utils.common.DateUtil;
+import org.forten.utils.common.NumberUtil;
+import org.forten.utils.common.StringUtil;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;

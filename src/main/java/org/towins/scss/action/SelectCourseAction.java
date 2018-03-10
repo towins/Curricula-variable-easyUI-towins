@@ -1,6 +1,6 @@
 package org.towins.scss.action;
 
-import org.towins.dto.Message;
+import org.forten.dto.Message;
 import org.towins.scss.bo.SelectCourseBo;
 import org.towins.scss.dto.vo.CourseVoForSelect;
 import org.towins.scss.dto.vo.SelectInfoVoForWrite;

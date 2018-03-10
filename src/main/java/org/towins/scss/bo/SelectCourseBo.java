@@ -1,35 +1,26 @@
 package org.towins.scss.bo;
 
-import com.sun.mail.util.MailSSLSocketFactory;
 import freemarker.template.Template;
-import org.apache.commons.mail.Email;
 import org.apache.commons.mail.SimpleEmail;
+import org.forten.dto.Message;
+import org.forten.utils.common.DateUtil;
+import org.forten.utils.common.NumberUtil;
 import org.towins.dao.HibernateDao;
 import org.towins.dao.MybatisDao;
-import org.towins.dto.Message;
 import org.towins.scss.dao.SelectCourseDao;
 import org.towins.scss.dto.qo.CreditQoForCount;
 import org.towins.scss.dto.vo.CourseVoForSelect;
 import org.towins.scss.dto.vo.SelectInfoVoForWrite;
 import org.towins.scss.entity.SysParams;
-import org.towins.utils.common.DateUtil;
-import org.towins.utils.common.NumberUtil;
-import org.towins.utils.common.StringUtil;
-import org.towins.utils.system.PropertiesFileReader;
-import org.springframework.mail.MailSender;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
-
+import org.forten.utils.system.PropertiesFileReader;
+import static org.forten.utils.system.PropertiesFileReader.getValue;
 import javax.annotation.Resource;
-import java.security.GeneralSecurityException;
 import java.util.*;
 
-import static org.towins.utils.system.PropertiesFileReader.getValue;
 
 @Service
 public class SelectCourseBo {

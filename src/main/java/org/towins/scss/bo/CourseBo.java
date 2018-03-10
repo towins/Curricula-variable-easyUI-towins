@@ -1,19 +1,17 @@
 package org.towins.scss.bo;
 
 import org.apache.ibatis.session.SqlSession;
+import org.forten.dto.Message;
+import org.forten.dto.PageInfo;
+import org.forten.dto.PagedRo;
+import org.forten.utils.system.BeanPropertyUtil;
 import org.towins.dao.HibernateDao;
 import org.towins.dao.MybatisDao;
-import org.towins.dto.Message;
-import org.towins.dto.PageInfo;
-import org.towins.dto.PagedRo;
 import org.towins.scss.dao.CourseDao;
 import org.towins.scss.dto.qo.CourseQoForTeacher;
 import org.towins.scss.dto.ro.PagedRoForEasyUI;
 import org.towins.scss.dto.vo.*;
 import org.towins.scss.entity.Course;
-import org.towins.utils.system.BeanPropertyUtil;
-import org.towins.utils.system.ValidateUtil;
-import org.hibernate.annotations.ManyToAny;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,7 +60,7 @@ public class CourseBo {
 
         long count = courseDao.queryCountForTeacher(qo);
         if (count == 0) {
-            return new PagedRoForEasyUI(new PagedRo<>());
+            return new PagedRoForEasyUI(new PagedRo());
         }
 
         PageInfo page = PageInfo.getInstance(qo.getPage(), qo.getRows(), (int) count);

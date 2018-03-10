@@ -1,10 +1,9 @@
 package org.towins.scss.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import org.towins.utils.system.CurrentTimeKeyBuilder;
+import org.forten.utils.system.CurrentTimeKeyBuilder;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

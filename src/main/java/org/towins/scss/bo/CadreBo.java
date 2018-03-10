@@ -1,18 +1,16 @@
 package org.towins.scss.bo;
 
+import org.forten.dto.Message;
+import org.forten.dto.PageInfo;
+import org.forten.dto.PagedRo;
+import org.forten.utils.system.BeanPropertyUtil;
 import org.towins.dao.HibernateDao;
 import org.towins.dao.MybatisDao;
-import org.towins.dto.Message;
-import org.towins.dto.PageInfo;
-import org.towins.dto.PagedRo;
 import org.towins.scss.dao.CadreDao;
 import org.towins.scss.dto.qo.CadreQo;
-import org.towins.scss.dto.qo.CourseQoForTeacher;
 import org.towins.scss.dto.ro.PagedRoForEasyUI;
 import org.towins.scss.dto.vo.CadreVo;
-import org.towins.scss.dto.vo.CourseForTeacher;
 import org.towins.scss.entity.Cadre;
-import org.towins.utils.system.BeanPropertyUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

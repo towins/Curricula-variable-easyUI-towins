@@ -1,6 +1,6 @@
 package org.towins.scss.dto.ro;
 
-import org.towins.dto.PagedRo;
+import org.forten.dto.PagedRo;
 
 import java.util.Collection;
 

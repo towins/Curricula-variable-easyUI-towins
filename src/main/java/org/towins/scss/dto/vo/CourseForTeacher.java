@@ -1,7 +1,7 @@
 package org.towins.scss.dto.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import org.towins.utils.common.DateUtil;
+import org.forten.utils.common.DateUtil;
 
 import java.util.Date;
 
